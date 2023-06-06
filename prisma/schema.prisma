@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model appointment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pet_id     String   @db.Uuid
+  user_id    String   @db.Uuid
+  date       DateTime @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  pet        pet      @relation(fields: [pet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model customer_feedback {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  product_id String   @db.Uuid
+  rating     Int
+  comment    String?
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  product    product  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model pet {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String        @db.VarChar(255)
+  pet_care_id String        @db.Uuid
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  updated_at  DateTime      @default(now()) @db.Timestamp(6)
+  appointment appointment[]
+  pet_care    pet_care      @relation(fields: [pet_care_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vaccination vaccination[]
+}
+
+model pet_care {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String    @db.VarChar(255)
+  user_id    String    @db.Uuid
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  pet        pet[]
+  user       user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product    product[]
+}
+
+model product {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pet_care_id       String              @db.Uuid
+  name              String              @db.VarChar(255)
+  price             Int
+  created_at        DateTime            @default(now()) @db.Timestamp(6)
+  updated_at        DateTime            @default(now()) @db.Timestamp(6)
+  customer_feedback customer_feedback[]
+  pet_care          pet_care            @relation(fields: [pet_care_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String              @unique @db.VarChar(255)
+  firstName         String?             @db.VarChar(255)
+  lastName          String?             @db.VarChar(255)
+  roq_user_id       String              @db.VarChar(255)
+  tenant_id         String              @db.VarChar(255)
+  appointment       appointment[]
+  customer_feedback customer_feedback[]
+  pet_care          pet_care[]
+}
+
+model vaccination {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pet_id     String   @db.Uuid
+  name       String   @db.VarChar(255)
+  date       DateTime @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  pet        pet      @relation(fields: [pet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
